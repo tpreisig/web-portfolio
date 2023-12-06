@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Tiziano Preisig">
+
+    <title>Code Rain Effect</title>
+    <style>
+        :root {
+            --font: 'Poppins', sans-serif;
+
+            --dark-color: #0b0b0c;
+            --bright-color: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            overflow:
+                hidden;
+            background: var(--dark-color);
+        }
+
+        #back-link {
+            font-family: var(--font);
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            translate: -50% -50%;
+            z-index: 100;
+            text-decoration: none;
+            background: var(--bright-color);
+            padding: 8px 20px;
+            border-radius: 6px;
+
+        }
+
+        canvas {
+            position:
+                absolute;
+            top:
+                0;
+            left:
+                0;
+        }
+    </style>
+</head>
+
+<body>
+    <a href="../../index.html" id="back-link">back</a>
+    <canvas id="canvas1"></canvas>
+    <script>
+        const canvas = document.getElementById("canvas1");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        class Symbol {
+            constructor(x, y, fontSize, canvasHeight) {
+                this.characters = "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                this.x = x;
+                this.y = y;
+                this.fontSize = fontSize;
+                this.text = "";
+                this.canvasHeight = canvasHeight;
+            }
+            draw(context) {
+                this.text = this.characters.charAt(Math.floor(Math.random() * this.characters.length));
+                context.fillStyle = "#0f0";
+                // context.fillStyle = ["#0f0", "#ff0", "#f0f", "#0ff"][Math.floor(Math.random() * 4)];
+                // context.fillStyle = `#${Math.random().toString(16).substr(-6)}`;
+                context.fillText(this.text, this.x * this.fontSize, this.y * this.fontSize);
+                if (this.y * this.fontSize > this.canvasHeight) {
+                    this.y = 0;
+                } else {
+                    this.y += 1;
+                }
+            }
+        }
+        class Effect {
+            constructor(canvasWidth, canvasHeight) {
+                this.canvasWidth = canvasWidth;
+                this.canvasHeight = canvasHeight;
+                this.fontSize = 20;
+                this.columns = this.canvasWidth / this.fontSize;
+                this.symbols = [];
+                this.#initalize();
+                console.log(this.symbols);
+            }
+            #initalize() { /* private method */
+                for (let i = 0; i < this.columns; i++) {
+                    this.symbols[i] = new Symbol(i, 0, this.fontSize, this.canvasHeight);
+                }
+            }
+            resize(width, height) {
+                this.canvasWidth = width;
+                this.canvasHeight = height;
+                this.columns = this.canvasWidth / this.fontSize;
+                this.symbols = [];
+                this.#initalize();
+            }
+        }
+        const effect = new Effect(canvas.width, canvas.height);
+        let lastTime = 0;
+        const fps = 160;
+        const nextFrame = 1000 / fps;
+        let timer = 0;
+
+        function animate(timeStamp) {
+            const deltaTime = timeStamp - lastTime;
+            lastTime = timeStamp;
+            if (timer > nextFrame) {
+                ctx.fillStyle = "rgba(0,0,0,0.1)";
+                ctx.textAlign = "center";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.font = effect.fontSize + "px monospace";
+                effect.symbols.forEach(symbol => symbol.draw(ctx));
+                timer = 0;
+            } else {
+                timer += deltaTime;
+            }
+            requestAnimationFrame(animate);
+        }
+        animate(0);
+
+        window.addEventListener('resize', function () {
+            canvas.width = window.innerWidth,
+                canvas.height = window.innerHeight;
+            effect.resize(canvas.width, canvas.height)
+        })
+    </script>
+</body>
+
+</html>

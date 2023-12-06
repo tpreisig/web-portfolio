@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Tiziano Preisig">
+
+    <title>Retro-designed Clock</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+        :root {
+            --font: 'Poppins', sans-serif;
+
+            --dark-color: #0b0b0c;
+            --dark-color2: rgba(0, 0, 0, 0.7);
+            --gray-color: linear-gradient(135deg, rgb(93, 93, 93), rgb(40, 40, 40));
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: aquamarine;
+        }
+
+        #back-link {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            translate: -50% -50%;
+            background: rgba(255, 255, 255, 0.4);
+            padding: 8px 20px;
+            text-decoration: none;
+            color: black;
+            border-radius: 6px;
+        }
+
+        .clock {
+            background: var(--gray-color);
+            width: 50em;
+            height: 15em;
+            border-radius: 3em;
+            box-shadow: 0 3em 1em rgba(0, 0, 0, 0.2);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clock-content {
+            background-color: var(--dark-color);
+            width: 48em;
+            height: 12em;
+            border-radius: 2em;
+
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .clock-content span {
+            color: aliceblue;
+            font-size: 7rem;
+            background: var(--gray-color);
+            width: 1.6em;
+            height: 1.5em;
+            border-radius: 0.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+        }
+
+        .clock-content .clock_period {
+            font-size: 7rem;
+        }
+
+        .clock_line {
+            position: absolute;
+            top: 50%;
+            background-color: var(--dark-color2);
+            width: 48em;
+            height: .312em;
+        }
+    </style>
+</head>
+
+<body>
+    <a href="../../index.html" id="back-link">Back</a>
+    <div class="clock">
+        <div class="clock-content">
+            <span class="clock_hours">00</span>
+            <span class="clock_minutes">00</span>
+            <span class="clock_seconds">00</span>
+            <span class="clock_period">AM</span>
+            <div class="clock_line"></div>
+        </div>
+    </div>
+    <script>
+        const hours = document.querySelector(".clock_hours");
+        const minutes = document.querySelector(".clock_minutes");
+        const seconds = document.querySelector(".clock_seconds");
+        const period = document.querySelector(".clock_period");
+
+
+        function getTime() {
+            let currentTime = new Date();
+            let hrs = currentTime.getHours();
+            let min = currentTime.getMinutes();
+            let sec = currentTime.getSeconds();
+
+            period.textContent = hrs >= 12 ? "PM" : "AM";
+
+            if (hrs > 12) hrs -= 12;
+            if (hrs < 10) hrs = `0${hrs}`;
+            if (min < 10) min = `0${min}`;
+            if (sec < 10) sec = `0${sec}`;
+
+
+            hours.textContent = hrs;
+            minutes.textContent = min;
+            seconds.textContent = sec;
+
+        }
+        setInterval(getTime, 1000);
+    </script>
+</body>
+
+</html>

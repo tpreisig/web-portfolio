@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Tiziano Preisig">
+    <title>Animation with Connected Discs</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?=Poppins:ital,wght@0,100;0,200;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,500;1,700;1,900&display=swap');
+
+        :root {
+            --font: 'Poppins', sans-serif;
+            --bright-color: rgba(255, 255, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            min-width: 100vw;
+            background: radial-gradient(rgb(138, 138, 185) 0.2%, black);
+            font-family: var(--font);
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            translate: -50% -50%;
+            padding: 20px;
+            font-size: 1.9rem;
+            color: rgba(0, 0, 0, 0.8);
+            text-shadow: 3px 2px 12px rgba(255, 255, 255, 0.4);
+            text-align: center;
+        }
+
+        button {
+            position: fixed;
+            font-size: 1.1rem;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 8px 20px;
+            background: var(--bright-color);
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+
+        }
+
+        @media screen and (min-width: 769px) and (max-width: 1024px) {
+            .content {
+                font-size: 1.7rem;
+                top: 20%;
+            }
+
+            button {
+                top: 30%;
+            }
+
+        }
+
+        @media screen and (max-width: 768px) {
+            .content {
+                font-size: 1.2rem;
+                top: 40%;
+            }
+
+            button {
+                top: 50%;
+            }
+        }
+
+        #back-link {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            translate: -50% -50%;
+            color: black;
+            background: var(--bright-color);
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            z-index: 100;
+        }
+    </style>
+</head>
+
+<body>
+    <a href="../../index.html" id="back-link">back</a>
+    <canvas></canvas>
+    <div class="content">Click start for the the animation to run</div>
+    <button type="button">start</button>
+    <script>
+        const canvas = document.querySelector("canvas");
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const button = document.querySelector("button");
+        const content = document.querySelector(".content");
+
+        button.addEventListener('click', () => {
+            console.log('clicked');
+            button.style.display = "none";
+            content.innerHTML = "Animation is running"
+            content.style.background = "rgba(255,255,255,0.05)";
+            content.style.borderRadius = "6px";
+            requestAnimationFrame(animate);
+        })
+
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        gradient.addColorStop(0, "lime");
+        gradient.addColorStop(0.2, "teal");
+        gradient.addColorStop(0.4, "deeppink");
+        gradient.addColorStop(0.7, "blue");
+        gradient.addColorStop(0.9, "lime");
+
+        class Particle {
+            constructor(effect) {
+                this.effect = effect;
+                this.radius = 20;
+                this.minRadius = this.radius;
+                this.maxRadius = this.radius * 6;
+                this.x = this.radius + Math.random() * (this.effect.width - this.radius * 2);
+                this.y = this.radius + Math.random() * (this.effect.height - this.radius * 2);
+                this.vx = (Math.random() * 2 - 1) * 1.2;
+                this.vy = (Math.random() * 2 - 1) * 0.1;
+            }
+            draw(context) {
+                context.fillStyle = gradient;
+                context.strokeStyle = "rgba(255,255,255,0.7)";
+                context.lineWidth = 2.8;
+                context.beginPath();
+                context.stroke();
+                context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                context.fill();
+            }
+            update() {
+                this.x += this.vx;
+                if (this.x > this.effect.width - this.radius * 2 || this.x < this.radius) this.vx *= -1;
+
+                this.y += this.vy;
+                if (this.y > this.effect.height - this.radius * 2 || this.y < this.radius) this.vy *= -1;
+            }
+            reset() {
+                this.x = this.radius + Math.random() * (this.effect.width - this.radius * 2);
+                this.y = this.radius + Math.random() * (this.effect.height - this.radius * 2);
+            }
+        }
+
+        class Effect {
+            constructor(canvas, context) {
+                this.canvas = canvas;
+                this.context = context;
+                this.width = this.canvas.width;
+                this.height = this.canvas.height;
+                this.particles = [];
+                this.numberOfParticles = 300;
+                this.createParticles();
+
+                window.addEventListener('resize', e => {
+                    console.log(e);
+                    this.resize(e.target.innerWidth, e.target.innerHeight);
+                })
+            }
+            createParticles() {
+                for (let i = 0; i < this.numberOfParticles; i++) {
+                    this.particles.push(new Particle(this));
+                }
+            }
+            handleParticles(context) {
+                this.particles.forEach(particle => {
+                    particle.draw(context);
+                    particle.update();
+                })
+                this.connectParticles(context);
+            }
+            connectParticles(context) {
+                const maxDistance = 90;
+                for (let a = 0; a < this.particles.length; a++) {
+                    for (let b = a; b < this.particles.length; b++) {
+                        const dx = this.particles[a].x - this.particles[b].x;
+                        const dy = this.particles[a].y - this.particles[b].y;
+                        const distance = Math.hypot(dx, dy);
+                        if (distance < maxDistance) {
+                            context.beginPath();
+                            context.moveTo(this.particles[a].x, this.particles[a].y);
+                            context.lineTo(this.particles[b].x, this.particles[b].y);
+                            context.stroke();
+
+                        }
+                    }
+                }
+            }
+            resize(width, height) {
+                this.width = width;
+                this.height = height;
+                this.canvas.width = width;
+                this.canvas.height = height;
+                this.particles.forEach(particle => {
+                    particle.reset();
+                })
+            }
+        }
+
+        const effect = new Effect(canvas);
+        console.log(effect);
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            effect.handleParticles(ctx);
+            requestAnimationFrame(animate);
+        }
+
+    </script>
+</body>
+
+</html>
